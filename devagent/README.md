@@ -20,7 +20,7 @@ log stream --predicate 'process == "devagent"'
 
 ```bash
 export OPENAI_API_KEY=sk-...
-devagent new "repo ~/code/app; checkout feature/x; run 'pytest -q'; every weekday at 9am" --approve
+devagent new "repo ~/code/app; checkout feature/x; run 'pytest -q'; every weekday at 9am"
 devagent run
 devagent schedule list
 ```
@@ -41,6 +41,11 @@ Run tests and build the binary locally:
 cd devagent
 go test ./...
 go build ./cmd/devagent
+```
+
+To uninstall
+```bash
+bash scripts/uninstall.sh
 ```
 
 The SQLite state file lives at `~/.devagent/state.db` and run artifacts are stored under `devagent_runs/` inside the configured repo.

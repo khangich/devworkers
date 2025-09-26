@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -16,6 +17,29 @@ import (
 
 func TestDevAgentNewAndRunHappyPath(t *testing.T) {
 	tempHome := t.TempDir()
+	gomodCache := filepath.Join(tempHome, "go", "pkg", "mod")
+	t.Cleanup(func() {
+		if _, err := os.Stat(gomodCache); os.IsNotExist(err) {
+			return
+		}
+		// The Go toolchain marks module cache contents read-only, which breaks TempDir cleanup.
+		filepath.WalkDir(gomodCache, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+			if d.Type()&fs.ModeSymlink != 0 {
+				return nil
+			}
+			mode := os.FileMode(0o644)
+			if d.IsDir() {
+				mode = 0o755
+			}
+			if err := os.Chmod(path, mode); err != nil && !os.IsNotExist(err) {
+				t.Logf("chmod failed for %s: %v", path, err)
+			}
+			return nil
+		})
+	})
 	t.Setenv("HOME", tempHome)
 	t.Setenv("OPENAI_API_KEY", "test-key")
 
@@ -79,7 +103,7 @@ func TestDevAgentNewAndRunHappyPath(t *testing.T) {
 
 	spec := "Summarize this repository and record the output"
 
-	newCmd := exec.Command(binPath, "new", "--approve", "--base-url", server.URL, spec)
+	newCmd := exec.Command(binPath, "new", "--base-url", server.URL, spec)
 	newCmd.Dir = repoDir
 	newCmd.Env = append(os.Environ(), "HOME="+tempHome, "OPENAI_API_KEY=test-key")
 	var newOut bytes.Buffer

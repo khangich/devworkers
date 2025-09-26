@@ -80,8 +80,6 @@ func doNew(args []string) {
 		cronFlag    = fs.String("cron", "", "cron expression fallback")
 		repoFlag    = fs.String("repo", "", "repository path")
 		nameFlag    = fs.String("name", "", "workflow name")
-		approveFlag = fs.Bool("approve", false, "approve writing the workflow")
-		yesFlag     = fs.Bool("yes", false, "skip approval prompt")
 		tzFlag      = fs.String("timezone", "", "timezone override")
 		modelFlag   = fs.String("model", "", "planner model")
 		baseURLFlag = fs.String("base-url", "", "planner base URL")
@@ -152,10 +150,6 @@ func doNew(args []string) {
 	}
 
 	fmt.Println(string(yamlBytes))
-	if !*approveFlag && !*yesFlag {
-		fmt.Println("rerun with --approve to save this plan")
-		return
-	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
