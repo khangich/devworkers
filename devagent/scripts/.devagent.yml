@@ -1,0 +1,10 @@
+version: 1
+name: every-weekday-at-11-08am
+repo: https://github.com/khangich/machine-learning-interview
+schedule:
+    natural: every weekday at 11:08am
+    cron: 8 11 * * 1-5
+    timezone: Local
+steps:
+    - run: git pull
+    - run: cat README.md

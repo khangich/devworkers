@@ -6,7 +6,7 @@ if [[ "$(uname)" != "Darwin" ]]; then
   exit 1
 fi
 
-REPO_URL="${DEVAGENT_REPO:-https://github.com/<me>/devagent}"
+REPO_URL="${DEVAGENT_REPO:-https://github.com/khangich/devworkers}"
 INSTALL_DIR="/usr/local/bin"
 if [[ ! -w "$INSTALL_DIR" ]]; then
   INSTALL_DIR="/opt/homebrew/bin"
@@ -19,25 +19,36 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 echo "Downloading DevAgent sources..."
 curl -fsSL "$REPO_URL/archive/refs/heads/main.tar.gz" -o "$TMP_DIR/devagent.tar.gz"
 tar -xzf "$TMP_DIR/devagent.tar.gz" -C "$TMP_DIR"
-SRC_DIR="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -n1)"
+
+GO_MOD_PATH="$(find "$TMP_DIR" -type f -name go.mod -print -quit || true)"
+if [[ -z "$GO_MOD_PATH" ]]; then
+  echo "Failed to locate go.mod in downloaded archive" >&2
+  exit 1
+fi
+SRC_DIR="$(dirname "$GO_MOD_PATH")"
 
 if ! command -v go >/dev/null 2>&1; then
   echo "Go toolchain is required to build DevAgent" >&2
   exit 1
 fi
 
-echo "Building binary..."
-(cd "$SRC_DIR" && GOOS=darwin GOARCH=arm64 go build -o "$TMP_DIR/devagent-arm64" ./cmd/devagent)
-(cd "$SRC_DIR" && GOOS=darwin GOARCH=amd64 go build -o "$TMP_DIR/devagent-amd64" ./cmd/devagent)
-
-# Prefer native architecture when possible
-TARGET="$TMP_DIR/devagent"
 ARCH="$(uname -m)"
-if [[ "$ARCH" == "arm64" ]]; then
-  cp "$TMP_DIR/devagent-arm64" "$TARGET"
-else
-  cp "$TMP_DIR/devagent-amd64" "$TARGET"
-fi
+case "$ARCH" in
+  arm64|aarch64)
+    GOARCH_TARGET="arm64"
+    ;;
+  x86_64|amd64)
+    GOARCH_TARGET="amd64"
+    ;;
+  *)
+    echo "Unsupported architecture: $ARCH" >&2
+    exit 1
+    ;;
+esac
+
+TARGET="$TMP_DIR/devagent"
+echo "Building $GOARCH_TARGET binary..."
+(cd "$SRC_DIR" && GOOS=darwin GOARCH="$GOARCH_TARGET" go build -o "$TARGET" ./cmd/devagent)
 chmod +x "$TARGET"
 
 BIN_PATH="$INSTALL_DIR/devagent"

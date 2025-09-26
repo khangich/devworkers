@@ -5,8 +5,10 @@ DevAgent is a lightweight, headless automation runner for macOS that lets you de
 ## Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<me>/devagent/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/khangich/devworkers/main/devagent/scripts/install.sh | bash
 ```
+
+> Requires Go 1.22+ at install time so the script can build the binary locally. Override the source repo by exporting `DEVAGENT_REPO` if using a fork.
 
 The install script builds the `devagent` binary (or downloads a cached build when available), installs it into `/usr/local/bin` (falling back to `/opt/homebrew/bin` on Apple Silicon), writes the LaunchAgent file `~/Library/LaunchAgents/com.llmlab.devagent.plist`, and loads it via `launchctl`. After the script completes you can inspect logs with:
 

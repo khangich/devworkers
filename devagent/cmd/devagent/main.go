@@ -32,6 +32,17 @@ func (s *stringList) Set(value string) error {
 	return nil
 }
 
+var warnedNoAPIKey bool
+
+func loadAPIKey() string {
+	apiKey := strings.TrimSpace(os.Getenv("OPENAI_API_KEY"))
+	if apiKey == "" && !warnedNoAPIKey {
+		fmt.Fprintln(os.Stderr, "warning: OPENAI_API_KEY not set; falling back to heuristic planning")
+		warnedNoAPIKey = true
+	}
+	return apiKey
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		usage()
@@ -88,7 +99,7 @@ func doNew(args []string) {
 	}
 	spec := remaining[0]
 
-	apiKey := os.Getenv("OPENAI_API_KEY")
+	apiKey := loadAPIKey()
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -306,7 +317,7 @@ func doPlan(args []string) {
 	}
 	spec := remaining[0]
 
-	apiKey := os.Getenv("OPENAI_API_KEY")
+	apiKey := loadAPIKey()
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
