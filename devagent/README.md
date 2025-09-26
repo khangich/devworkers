@@ -21,6 +21,16 @@ log stream --predicate 'process == "devagent"'
 ```bash
 export OPENAI_API_KEY=sk-...
 devagent new "repo ~/code/app; checkout feature/x; run 'pytest -q'; every weekday at 9am"
+
+devagent new \                   
+      --repo "https://github.com/khangich/machine-learning-interview" \
+      --cron "8 11 * * 1-5" \
+      --step "git pull" \
+      --step "cat README.md" \
+      --approve \
+      "every weekday at 11:08am"
+
+
 devagent run
 devagent schedule list
 ```
