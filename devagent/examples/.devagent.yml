@@ -1,0 +1,14 @@
+version: 1
+name: daily-tests
+repo: "~/code/app"
+schedule:
+  natural: "every day at 7am"
+  cron: "0 7 * * *"
+  timezone: "Local"
+steps:
+  - run: "git fetch --all --prune"
+  - run: "git checkout feature/x"
+  - run: "pytest -q --maxfail=1 --disable-warnings --junitxml=report.xml"
+outputs:
+  copy_if_exists:
+    - "report.xml"
